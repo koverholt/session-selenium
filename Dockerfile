@@ -7,7 +7,7 @@ ARG RSP_PLATFORM=trusty
 ARG RSP_VERSION=1.2.5042-1
 ARG R_VERSION=3.6.3
 ARG MINICONDA_VERSION=py37_4.8.2
-ARG PYTHON_VERSION=3.7.6
+ARG PYTHON_VERSION=jupyter
 ARG DRIVERS_VERSION=1.6.1
 
 # Install RStudio Server Pro session components -------------------------------#
@@ -64,15 +64,15 @@ RUN /opt/R/${R_VERSION}/bin/R -e 'install.packages("devtools", repos="https://pa
 # Install Python --------------------------------------------------------------#
 
 RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-  bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -bp /opt/python/3.6.7 && \
-  /opt/python/3.6.7/bin/pip install virtualenv && \
+  bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -bp /opt/python/${PYTHON_VERSION} && \
+  /opt/python/${PYTHON_VERSION}/bin/pip install virtualenv && \
   rm -rf Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh
 
-ENV PATH="/opt/python/3.6.7/bin:${PATH}"
+ENV PATH="/opt/python/${PYTHON_VERSION}/bin:${PATH}"
 
 # Install Python packages -----------------------------------------------------#
 
-# RUN /opt/python/3.6.7/bin/pip install \
+# RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
 #   beautifulsoup4 \
 #   dash \
 #   dask \
@@ -93,18 +93,18 @@ ENV PATH="/opt/python/3.6.7/bin:${PATH}"
 
 # Install Jupyter Notebook and RSP/RSC Notebook Extensions and Packages -------#
 
-RUN /opt/python/3.6.7/bin/pip install \
+RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
   jupyter \
   jupyterlab \
   rsp_jupyter \
   rsconnect_jupyter \
   rsconnect_python
 
-RUN /opt/python/3.6.7/bin/jupyter-nbextension install --sys-prefix --py rsp_jupyter && \
-  /opt/python/3.6.7/bin/jupyter-nbextension enable --sys-prefix --py rsp_jupyter && \
-  /opt/python/3.6.7/bin/jupyter-nbextension install --sys-prefix --py rsconnect_jupyter && \
-  /opt/python/3.6.7/bin/jupyter-nbextension enable --sys-prefix --py rsconnect_jupyter && \
-  /opt/python/3.6.7/bin/jupyter-serverextension enable --sys-prefix --py rsconnect_jupyter
+RUN /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension install --sys-prefix --py rsp_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension enable --sys-prefix --py rsp_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension install --sys-prefix --py rsconnect_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension enable --sys-prefix --py rsconnect_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-serverextension enable --sys-prefix --py rsconnect_jupyter
 
 # Locale configuration --------------------------------------------------------#
 
