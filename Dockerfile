@@ -1,5 +1,7 @@
 FROM selenium/standalone-chrome:3.141.59
 
+USER root
+
 # Set versions and platforms
 ARG RSP_PLATFORM=trusty
 ARG RSP_VERSION=1.2.5042-1
@@ -19,8 +21,7 @@ RUN apt-get update -y && \
   libssl-dev \
   libuser \
   libuser1-dev \
-  rrdtool && \
-  rm -rf /var/lib/apt/lists/*
+  rrdtool
 
 RUN curl -O https://s3.amazonaws.com/rstudio-ide-build/session/${RSP_PLATFORM}/rsp-session-${RSP_PLATFORM}-${RSP_VERSION}.tar.gz && \
   mkdir -p /usr/lib/rstudio-server && \
@@ -100,5 +101,3 @@ RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-
-USER root
