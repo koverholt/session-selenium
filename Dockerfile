@@ -72,24 +72,24 @@ ENV PATH="/opt/python/3.7.3/bin:${PATH}"
 
 # Install Python packages -----------------------------------------------------#
 
-RUN /opt/python/3.7.3/bin/pip install \
-  beautifulsoup4 \
-  dash \
-  dask \
-  flask \
-  ipykernel \
-  matplotlib \
-  numpy \
-  pandas \
-  plotly \
-  requests \
-  scipy \
-  scikit-image \
-  scikit-learn \
-  scrapy \
-  seaborn \
-  selenium \
-  spacy
+# RUN /opt/python/3.7.3/bin/pip install \
+#   beautifulsoup4 \
+#   dash \
+#   dask \
+#   flask \
+#   ipykernel \
+#   matplotlib \
+#   numpy \
+#   pandas \
+#   plotly \
+#   requests \
+#   scipy \
+#   scikit-image \
+#   scikit-learn \
+#   scrapy \
+#   seaborn \
+#   selenium \
+#   spacy
 
 # Install Jupyter Notebook and RSP/RSC Notebook Extensions and Packages -------#
 
