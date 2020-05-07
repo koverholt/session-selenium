@@ -1,4 +1,4 @@
-FROM selenium/chrome-standalone:3.141.59
+FROM selenium/standalone-chrome:3.141.59
 
 # Set versions and platforms
 ARG RSP_PLATFORM=xenial
