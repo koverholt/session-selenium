@@ -91,6 +91,21 @@ RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
   selenium \
   spacy
 
+# Install Jupyter Notebook and RSP/RSC Notebook Extensions and Packages -------#
+
+RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
+  jupyter \
+  jupyterlab \
+  rsp_jupyter \
+  rsconnect_jupyter \
+  rsconnect_python
+
+RUN /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension install --sys-prefix --py rsp_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension enable --sys-prefix --py rsp_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension install --sys-prefix --py rsconnect_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-nbextension enable --sys-prefix --py rsconnect_jupyter && \
+  /opt/python/${PYTHON_VERSION}/bin/jupyter-serverextension enable --sys-prefix --py rsconnect_jupyter
+
 # Locale configuration --------------------------------------------------------#
 
 RUN apt-get update -y && \
