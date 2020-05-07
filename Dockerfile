@@ -1,44 +1,104 @@
-FROM rstudio/r-session-complete:bionic-1.2.5042-1
+FROM selenium/chrome-standalone:3.141.59
 
-RUN apt-get update -qqy \
-  && apt-get -qqy install \
-   wget \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-ARG CHROME_VERSION="google-chrome-stable"
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
-RUN apt-get update -qqy \
-  && apt-get -qqy install \
-    ${CHROME_VERSION:-google-chrome-stable} \
-  && rm /etc/apt/sources.list.d/google-chrome.list \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+# Set versions and platforms
+ARG RSP_PLATFORM=xenial
+ARG RSP_VERSION=1.3.957-1
+ARG R_VERSION=3.6.3
+ARG MINICONDA_VERSION=py37_4.8.2
+ARG PYTHON_VERSION=3.7.6
+ARG DRIVERS_VERSION=1.6.1
 
-# Chrome Launch Script Wrapper
-COPY wrap_chrome_binary /opt/bin/wrap_chrome_binary
-RUN /opt/bin/wrap_chrome_binary
+# Install RStudio Server Pro session components -------------------------------#
 
-# Chrome webdriver
-# You can specify versions by using CHROME_DRIVER_VERSION
-# The latest released version will be used by default
-ARG CHROME_DRIVER_VERSION
-RUN if [ -z "$CHROME_DRIVER_VERSION" ]; \
-  then CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
-    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}"); \
-  fi \
-  && echo "Using chromedriver version: "$CHROME_DRIVER_VERSION \
-  && wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
-  && rm -rf /opt/selenium/chromedriver \
-  && unzip /tmp/chromedriver_linux64.zip -d /opt/selenium \
-  && rm /tmp/chromedriver_linux64.zip \
-  && mv /opt/selenium/chromedriver /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION \
-  && chmod 755 /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION \
-  && ln -fs /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
-COPY generate_config /opt/bin/generate_config
-# Generating a default config during build time
-RUN /opt/bin/generate_config > /opt/selenium/config.json
+RUN apt-get update -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  curl \
+  gdebi \
+  libcurl4-gnutls-dev \
+  libssl1.0.0 \
+  libssl-dev \
+  libuser \
+  libuser1-dev \
+  rrdtool && \
+  rm -rf /var/lib/apt/lists/*
 
-# Install Python
-RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh && \
-  bash Miniconda3-py37_4.8.2-Linux-x86_64.sh -bp ~/miniconda && \
-  ~/miniconda/bin/pip install ipykernel selenium && \
-  rm -rf Miniconda3-py37_4.8.2-Linux-x86_64.sh
+RUN curl -O https://s3.amazonaws.com/rstudio-ide-build/session/${RSP_PLATFORM}/rsp-session-${RSP_PLATFORM}-${RSP_VERSION}.tar.gz && \
+  mkdir -p /usr/lib/rstudio-server && \
+  tar -zxvf ./rsp-session-${RSP_PLATFORM}-${RSP_VERSION}.tar.gz -C /usr/lib/rstudio-server/ && \
+  mv /usr/lib/rstudio-server/rsp-session*/* /usr/lib/rstudio-server/ && \
+  rm -rf /usr/lib/rstudio-server/rsp-session* && \
+  rm -f ./rsp-session-${RSP_PLATFORM}-${RSP_VERSION}.tar.gz
+
+EXPOSE 8788/tcp
+
+# Install additional system packages ------------------------------------------#
+
+RUN apt-get update -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  git \
+  libssl1.0.0 \
+  libuser \
+  libxml2-dev \
+  subversion && \
+  rm -rf /var/lib/apt/lists/*
+
+# Install R -------------------------------------------------------------------#
+
+RUN curl -O https://cdn.rstudio.com/r/ubuntu-1804/pkgs/r-${R_VERSION}_1_amd64.deb && \
+  apt-get update && \
+  DEBIAN_FRONTEND=noninteractive gdebi --non-interactive r-${R_VERSION}_1_amd64.deb && \
+  rm -rf r-${R_VERSION}_1_amd64.deb && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /opt/R/${R_VERSION}/bin/R /usr/local/bin/R && \
+  ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript
+
+# Install R packages ----------------------------------------------------------#
+
+RUN /opt/R/${R_VERSION}/bin/R -e 'install.packages("devtools", repos="https://packagemanager.rstudio.com/cran/__linux__/bionic/latest")' && \
+  /opt/R/${R_VERSION}/bin/R -e 'install.packages("tidyverse", repos="https://packagemanager.rstudio.com/cran/__linux__/bionic/latest")' && \
+  /opt/R/${R_VERSION}/bin/R -e 'install.packages("shiny", repos="https://packagemanager.rstudio.com/cran/__linux__/bionic/latest")' && \
+  /opt/R/${R_VERSION}/bin/R -e 'install.packages("rmarkdown", repos="https://packagemanager.rstudio.com/cran/__linux__/bionic/latest")'
+
+# Install Python --------------------------------------------------------------#
+
+RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
+  bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -bp /opt/python/${PYTHON_VERSION} && \
+  /opt/python/${PYTHON_VERSION}/bin/pip install virtualenv && \
+  rm -rf Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh
+
+ENV PATH="/opt/python/${PYTHON_VERSION}/bin:${PATH}"
+
+# Install Python packages -----------------------------------------------------#
+
+RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
+  beautifulsoup4 \
+  dash \
+  dask \
+  flask \
+  ipykernel \
+  matplotlib \
+  numpy \
+  pandas \
+  plotly \
+  requests \
+  scipy \
+  scikit-image \
+  scikit-learn \
+  scrapy \
+  seaborn \
+  selenium \
+  spacy
+
+# Locale configuration --------------------------------------------------------#
+
+RUN apt-get update -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y locales && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+USER root
