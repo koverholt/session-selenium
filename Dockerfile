@@ -1,6 +1,7 @@
 FROM selenium/standalone-chrome:3.141.59
 
 USER root
+ENV PATH="/opt/selenium/:${PATH}"
 
 # Set versions and platforms
 ARG RSP_PLATFORM=trusty
