@@ -72,24 +72,24 @@ ENV PATH="/opt/python/${PYTHON_VERSION}/bin:${PATH}"
 
 # Install Python packages -----------------------------------------------------#
 
-# RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
-#   beautifulsoup4 \
-#   dash \
-#   dask \
-#   flask \
-#   ipykernel \
-#   matplotlib \
-#   numpy \
-#   pandas \
-#   plotly \
-#   requests \
-#   scipy \
-#   scikit-image \
-#   scikit-learn \
-#   scrapy \
-#   seaborn \
-#   selenium \
-#   spacy
+RUN /opt/python/${PYTHON_VERSION}/bin/pip install \
+  beautifulsoup4 \
+  dash \
+  dask \
+  flask \
+  ipykernel \
+  matplotlib \
+  numpy \
+  pandas \
+  plotly \
+  requests \
+  scipy \
+  scikit-image \
+  scikit-learn \
+  scrapy \
+  seaborn \
+  selenium \
+  spacy
 
 # Install Jupyter Notebook and RSP/RSC Notebook Extensions and Packages -------#
 
