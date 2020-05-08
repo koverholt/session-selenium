@@ -7,7 +7,7 @@ ARG RSP_PLATFORM=trusty
 ARG RSP_VERSION=1.2.5042-1
 ARG R_VERSION=3.6.3
 ARG MINICONDA_VERSION=py37_4.8.2
-ARG PYTHON_VERSION=3.7.6
+ARG PYTHON_VERSION=jupyter
 ARG DRIVERS_VERSION=1.6.1
 
 # Install RStudio Server Pro session components -------------------------------#
